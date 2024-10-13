@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau à Double Entrée Interactif</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 20px;
+        }
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            font-size: 18px;
+            background-color: #e0e0e0;
+            position: relative; /* Ajout de la position relative */
+        }
+        th, td {
+            border: 2px solid #333;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+        }
+        th {
+            background-color: #444;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #c0c0c0;
+        }
+        /* Couleur pour les colonnes neutralisées */
+        .neutralized {
+            background-color: #777;
+            color: #aaa;
+        }
+        .total {
+            font-weight: bold;
+            background-color: #333;
+            color: white;
+        }
+        button {
+            margin: 20px auto;
+            display: block;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        input[type="number"] {
+            width: 50px;
+            text-align: center;
+        }
+        /* Styles pour le texte vertical */
+        .vertical-text {
+            writing-mode: vertical-rl; /* Orientation verticale du texte */
+            transform: rotate(180deg); /* Retourner le texte */
+            text-align: center;
+            font-weight: bold;
+            height: 200px; /* Ajuster la hauteur du texte */
+            display: flex;
+            align-items: center; /* Centrer verticalement */
+            margin-right: 10px; /* Espacement entre le texte et le tableau */
+        }
+        .horizontal-text {
+            writing-mode: horizontal-tb; /* Orientation horizontale du texte */
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 10px; /* Espacement sous le texte */
+        }
+        /* Conteneur pour le tableau et les textes */
+        .table-container {
+            display: flex;
+            align-items: flex-start; /* Aligner en haut */
+            justify-content: center; /* Centrer horizontalement */
+        }
+        /* Styles pour le tableau des tâches */
+        #taskTable {
+            margin-top: 40px;
+            width: 80%;
+            border-collapse: collapse;
+        }
+        #taskTable th, #taskTable td {
+            border: 2px solid #333;
+            padding: 10px;
+            text-align: center;
+        }
+        #taskTable th {
+            background-color: #444;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align:center;">Tableau Interactif</h1>
+
+    <label for="letterCount" style="display: block; text-align: center;">Choisissez le nombre de lettres (1 à 26) :</label>
+    <input type="number" id="letterCount" min="1" max="26" value="5" onchange="createTable()">
+
+    <div class="table-container">
+        <div class="vertical-text">Pour faire</div>
+        <div>
+            <div class="horizontal-text">Il faut avoir fait</div>
+            <table id="table">
+                <thead>
+                    <tr>
+                        <th></th> <!-- Coin vide -->
+                        <!-- En-têtes des colonnes (A à Z) -->
+                        <th id="col0" onclick="toggleColumn(0)">A</th>
+                        <th id="col1" onclick="toggleColumn(1)">B</th>
+                        <th id="col2" onclick="toggleColumn(2)">C</th>
+                        <th id="col3" onclick="toggleColumn(3)">D</th>
+                        <th id="col4" onclick="toggleColumn(4)">E</th>
+                        <th id="col5" onclick="toggleColumn(5)">F</th>
+                        <th id="col6" onclick="toggleColumn(6)">G</th>
+                        <th id="col7" onclick="toggleColumn(7)">H</th>
+                        <th id="col8" onclick="toggleColumn(8)">I</th>
+                        <th id="col9" onclick="toggleColumn(9)">J</th>
+                        <th id="col10" onclick="toggleColumn(10)">K</th>
+                        <th id="col11" onclick="toggleColumn(11)">L</th>
+                        <th id="col12" onclick="toggleColumn(12)">M</th>
+                        <th id="col13" onclick="toggleColumn(13)">N</th>
+                        <th id="col14" onclick="toggleColumn(14)">O</th>
+                        <th id="col15" onclick="toggleColumn(15)">P</th>
+                        <th id="col16" onclick="toggleColumn(16)">Q</th>
+                        <th id="col17" onclick="toggleColumn(17)">R</th>
+                        <th id="col18" onclick="toggleColumn(18)">S</th>
+                        <th id="col19" onclick="toggleColumn(19)">T</th>
+                        <th id="col20" onclick="toggleColumn(20)">U</th>
+                        <th id="col21" onclick="toggleColumn(21)">V</th>
+                        <th id="col22" onclick="toggleColumn(22)">W</th>
+                        <th id="col23" onclick="toggleColumn(23)">X</th>
+                        <th id="col24" onclick="toggleColumn(24)">Y</th>
+                        <th id="col25" onclick="toggleColumn(25)">Z</th>
+                        <th>Total</th> <!-- Colonne pour le total -->
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Les lignes seront générées ici -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <button onclick="updateAllTotals()">Mettre à jour</button>
+
+    <h2 style="text-align:center;">Tableau des Tâches</h2>
+    <table id="taskTable">
+        <thead>
+            <tr>
+                <th>Tâches</th>
+                <th>Rang</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><input type="text" placeholder="Tâche (ex: A)" id="taskInput"></td>
+                <td><input type="number" min="1" placeholder="Rang" id="rankInput"></td>
+                <td><button onclick="addTask()">Ajouter</button></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <script>
+        const maxLetters = 26; // Maximum de lettres de A à Z
+
+        // Fonction pour créer le tableau en fonction du nombre de lettres
+        function createTable() {
+            const letterCount = Math.min(Math.max(parseInt(document.getElementById('letterCount').value) || 5, 1), maxLetters);
+            const tbody = document.querySelector("#table tbody");
+            tbody.innerHTML = ""; // Réinitialiser le contenu du corps du tableau
+
+            // Générer les lignes avec des lettres
+            const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").slice(0, letterCount); // Lettres de A à Z
+            for (let i = 0; i < letterCount; i++) { // Utiliser letterCount pour le nombre de lignes
+                const row = document.createElement("tr");
+                const headerCell = document.createElement("th");
+                headerCell.innerText = letters[i]; // Lettre pour chaque ligne
+                row.appendChild(headerCell);
+
+                for (let j = 0; j < letterCount; j++) {
+                    const cell = document.createElement("td");
+                    const checkbox = document.createElement("input");
+                    checkbox.type = "checkbox";
+                    checkbox.onchange = () => updateTotal(checkbox); // Met à jour le total quand une case est cochée ou décochée
+                    cell.appendChild(checkbox);
+                    row.appendChild(cell);
+                }
+
+                const totalCell = document.createElement("td");
+                totalCell.className = "total";
+                totalCell.innerText = "0"; // Initialiser le total à 0
+                row.appendChild(totalCell);
+                tbody.appendChild(row);
+            }
+            updateColumnHeaders(letterCount); // Mettre à jour les en-têtes des colonnes
+        }
+
+        // Fonction pour mettre à jour les en-têtes des colonnes
+        function updateColumnHeaders(letterCount) {
+            const headers = document.querySelectorAll("#table th");
+            for (let i = 0; i < maxLetters; i++) {
+                if (i < letterCount) {
+                    headers[i + 1].innerText = String.fromCharCode(65 + i); // Remplacer par A, B, C...
+                } else {
+                    headers[i + 1].innerText = ""; // Vider les en-têtes des colonnes non utilisées
+                }
+            }
+        }
+
+        // Fonction pour neutraliser une colonne
+        function toggleColumn(colIndex) {
+            const columnCells = document.querySelectorAll(`#table td:nth-child(${colIndex + 2})`); // +2 pour ignorer l'en-tête et la première colonne
+            const headerCell = document.querySelector(`#col${colIndex}`);
+
+            columnCells.forEach(cell => {
+                cell.classList.toggle('neutralized'); // Changer la couleur de la colonne
+            });
+            headerCell.classList.toggle('neutralized'); // Changer la couleur de l'en-tête
+            updateAllTotals(); // Mettre à jour les totaux après neutralisation
+        }
+
+        // Fonction pour mettre à jour le total d'une ligne
+        function updateTotal(checkbox) {
+            const row = checkbox.closest("tr");
+            const totalCell = row.querySelector(".total");
+            let total = 0;
+
+            // Compter les cases cochées si la colonne n'est pas neutralisée
+            row.querySelectorAll("input[type='checkbox']").forEach((cb, colIndex) => {
+                const isNeutralized = row.cells[colIndex + 1].classList.contains('neutralized');
+                if (cb.checked && !isNeutralized) {
+                    total++;
+                }
+            });
+
+            // Mettre à jour la cellule du total
+            totalCell.innerText = total;
+        }
+
+        // Fonction pour mettre à jour tous les totaux des lignes
+        function updateAllTotals() {
+            const rows = document.querySelectorAll("#table tbody tr");
+            rows.forEach(row => {
+                updateTotal(row.querySelector('input[type="checkbox"]')); // Appeler la fonction pour chaque ligne
+            });
+        }
+
+        // Fonction pour ajouter une tâche
+        function addTask() {
+            const taskInput = document.getElementById("taskInput");
+            const rankInput = document.getElementById("rankInput");
+            const taskValue = taskInput.value.trim().toUpperCase(); // Convertir en majuscules
+            const rankValue = rankInput.value.trim();
+
+            if (taskValue && rankValue) {
+                const taskTableBody = document.querySelector("#taskTable tbody");
+                const newRow = document.createElement("tr");
+                const taskCell = document.createElement("td");
+                taskCell.innerText = taskValue; // Tâche
+                const rankCell = document.createElement("td");
+                rankCell.innerText = rankValue; // Rang
+                const actionCell = document.createElement("td");
+                const deleteButton = document.createElement("button");
+                deleteButton.innerText = "Supprimer";
+                deleteButton.onclick = () => {
+                    taskTableBody.removeChild(newRow); // Supprimer la ligne
+                };
+                actionCell.appendChild(deleteButton);
+                newRow.appendChild(taskCell);
+                newRow.appendChild(rankCell);
+                newRow.appendChild(actionCell);
+                taskTableBody.appendChild(newRow);
+
+                // Réinitialiser les champs d'entrée
+                taskInput.value = "";
+                rankInput.value = "";
+            } else {
+                alert("Veuillez entrer une tâche et un rang valides.");
+            }
+        }
+
+        // Créer le tableau initial au chargement de la page
+        window.onload = createTable;
+    </script>
+</body>
+</html>

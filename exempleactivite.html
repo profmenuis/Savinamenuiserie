@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau des Tâches</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #2d2d2d;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            margin: 20px 0;
+            background-color: #444;
+        }
+        th, td {
+            padding: 15px;
+            border: 1px solid #888;
+            text-align: center;
+        }
+        th {
+            background-color: #555;
+        }
+        td {
+            background-color: #666;
+        }
+        button, input, select {
+            padding: 10px;
+            font-size: 12px;
+            background-color: #333;
+            color: white;
+            border: 2px solid #888;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #444;
+        }
+        h1, label {
+            font-size: 24px;
+            color: #aaa;
+            text-align: center;
+        }
+        input {
+            width: 120px;
+            text-align: center;
+        }
+        .control-panel, .user-info, .actions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 10px 0; /* Espacement entre les lignes */
+        }
+        .user-info {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #aaa;
+        }
+        .user-info label {
+            margin-right: 5px;
+        }
+        .logo {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 150px; /* Taille du logo ajustée */
+        }
+    </style>
+    <!-- Inclusion de la bibliothèque SheetJS pour Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    <!-- Inclusion de la bibliothèque jsPDF pour PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Inclusion de la bibliothèque jsPDF-AutoTable -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.14/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+
+    <!-- Logo du lycée -->
+    <img src="https://lycee-savina.fr/wp-content/uploads/2021/04/logo-savina-blanc.png" alt="Logo du lycée" class="logo">
+
+    <div class="user-info">
+        <label for="firstname">Prénom :</label>
+        <input type="text" id="firstname" placeholder="Votre prénom" required>
+
+        <label for="username">Nom :</label>
+        <input type="text" id="username" placeholder="Votre nom" required>
+
+        <label for="class">Classe :</label>
+        <input type="text" id="class" placeholder="Votre classe" required>
+    </div>
+
+    <h1>Tableau des Tâches Aléatoires</h1>
+
+    <div class="control-panel">
+        <label for="taskNumber">Nombre de tâches (5-24) :</label>
+        <input type="number" id="taskNumber" value="5" min="5" max="24">
+        
+        <label for="timeUnit">Unité de temps :</label>
+        <select id="timeUnit">
+            <option value="minutes">Minutes</option>
+            <option value="heures">Heures</option>
+            <option value="jours">Jours</option>
+        </select>
+    </div>
+
+    <div class="actions">
+        <button onclick="generateTasks()">Lancer</button>
+        <button onclick="exportToExcel()">Exporter en XLS</button>
+        <button onclick="exportToPDF()">Exporter en PDF</button>
+    </div>
+
+    <table id="taskTable">
+        <thead>
+            <tr>
+                <th>Tâche</th>
+                <th>Temps</th>
+                <th>Antériorités</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Contenu généré dynamiquement -->
+        </tbody>
+    </table>
+
+    <script>
+        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWX'; // Les 24 premières lettres de l'alphabet
+
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function generateTasks() {
+            const firstname = document.getElementById('firstname').value.trim(); // Récupérer le prénom
+            const username = document.getElementById('username').value.trim(); // Récupérer le nom
+            const className = document.getElementById('class').value.trim(); // Récupérer la classe
+
+            if (firstname === "" || username === "" || className === "") {
+                alert("Veuillez entrer votre prénom, nom et classe.");
+                return;
+            }
+
+            const taskNumber = parseInt(document.getElementById('taskNumber').value); // Récupérer le nombre de tâches
+            const timeUnit = document.getElementById('timeUnit').value; // Récupérer l'unité de temps
+            const tbody = document.querySelector("#taskTable tbody");
+            tbody.innerHTML = ""; // Réinitialiser le tableau
+
+            let taskOrder = alphabet.slice(0, taskNumber).split(''); // Générer un tableau avec le nombre de tâches désiré
+            taskOrder.sort(() => Math.random() - 0.5); // Mélanger aléatoirement
+
+            taskOrder.forEach((task, index) => {
+                const time = getRandomInt(10, 60); // Temps aléatoire en minutes
+                let dependencies = []; // Liste des antériorités
+                
+                // Générer un nombre aléatoire d'antériorités pour chaque tâche
+                let numberOfDependencies = getRandomInt(0, Math.min(index, 3)); // Limiter à 3 dépendances maximum
+
+                for (let i = 0; i < numberOfDependencies; i++) {
+                    let dependency = taskOrder[getRandomInt(0, index - 1)];
+                    if (!dependencies.includes(dependency)) { // Éviter les doublons
+                        dependencies.push(dependency);
+                    }
+                }
+
+                const row = document.createElement("tr");
+
+                const taskCell = document.createElement("td");
+                taskCell.textContent = task;
+                row.appendChild(taskCell);
+
+                const timeCell = document.createElement("td");
+                timeCell.textContent = time + " " + timeUnit; // Afficher le temps avec l'unité sans conversion
+                row.appendChild(timeCell);
+
+                const dependencyCell = document.createElement("td");
+                dependencyCell.textContent = dependencies.length > 0 ? dependencies.join(", ") : "Aucune";
+                row.appendChild(dependencyCell);
+
+                tbody.appendChild(row);
+            });
+        }
+
+        function exportToExcel() {
+            const username = document.getElementById('username').value.trim(); // Récupérer le nom
+            const table = document.getElementById("taskTable");
+            const wb = XLSX.utils.table_to_book(table, { sheet: "Tâches" });
+            XLSX.writeFile(wb, `taches-${username}.xlsx`); // Nom du fichier exporté
+        }
+
+        function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const firstname = document.getElementById('firstname').value.trim(); // Récupérer le prénom
+            const username = document.getElementById('username').value.trim(); // Récupérer le nom
+            const className = document.getElementById('class').value.trim(); // Récupérer la classe
+            const date = new Date().toLocaleDateString('fr-FR'); // Date du jour
+
+            // Afficher les informations en haut à gauche avec une taille de police réduite
+            doc.setFontSize(12);
+            doc.text(`Prénom: ${firstname}`, 10, 10);
+            doc.text(`Nom: ${username}`, 10, 15);
+            doc.text(`Classe: ${className}`, 10, 20);
+            doc.text(`Date: ${date}`, 10, 25);
+
+            // Récupérer les données du tableau
+            const table = document.getElementById("taskTable");
+            const rows = Array.from(table.rows).map(row => Array.from(row.cells).map(cell => cell.textContent));
+
+            // Dessiner le tableau dans le PDF
+            doc.autoTable({
+                head: [rows[0]], // En-tête
+                body: rows.slice(1), // Corps
+                startY: 30, // Positionnement vertical après les infos utilisateur
+                theme: 'grid', // Style du tableau
+            });
+
+            doc.save(`taches-${username}.pdf`); // Nom du fichier PDF exporté
+        }
+    </script>
+
+</body>
+</html>

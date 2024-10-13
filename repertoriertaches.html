@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organisateur de Tâches</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f8f8f8;
+        }
+        #taskInput, #timeInput {
+            margin-bottom: 10px;
+        }
+        #taskList {
+            list-style-type: none;
+            padding: 0;
+        }
+        #taskList li {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            margin: 5px 0;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            cursor: move;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+</head>
+<body>
+
+<h1>Organisateur de Tâches</h1>
+<input type="text" id="taskInput" placeholder="Ajouter une tâche" />
+<input type="text" id="timeInput" placeholder="Temps (ex: 30min, 1h)" />
+<button id="addTaskButton">Ajouter</button>
+<button id="generatePDFButton">Générer PDF</button>
+<ul id="taskList"></ul>
+
+<script>
+    const taskInput = document.getElementById('taskInput');
+    const timeInput = document.getElementById('timeInput');
+    const taskList = document.getElementById('taskList');
+    const addTaskButton = document.getElementById('addTaskButton');
+    const generatePDFButton = document.getElementById('generatePDFButton');
+
+    addTaskButton.addEventListener('click', () => {
+        const taskText = taskInput.value.trim();
+        const timeText = timeInput.value.trim();
+        if (taskText && timeText) {
+            const li = document.createElement('li');
+            const taskCount = taskList.children.length; // Nombre de tâches existantes
+            const letter = String.fromCharCode(65 + taskCount); // Convertir en lettre (A, B, C, ...)
+
+            li.innerHTML = `<span>${letter}. ${taskText}</span><span>${timeText}</span>`;
+            taskList.appendChild(li);
+            taskInput.value = '';
+            timeInput.value = '';
+        }
+    });
+
+    // Rendre la liste des tâches déplaçable
+    new Sortable(taskList, {
+        animation: 150,
+        onEnd: () => {
+            // Mettre à jour les lettres après le déplacement
+            updateTaskLetters();
+        }
+    });
+
+    // Fonction pour mettre à jour les lettres des tâches
+    function updateTaskLetters() {
+        const tasks = taskList.getElementsByTagName('li');
+        for (let i = 0; i < tasks.length; i++) {
+            const letter = String.fromCharCode(65 + i);
+            const taskContent = tasks[i].innerHTML.split('<span>');
+            const timeText = taskContent[1].trim().replace('</span>', '');
+            tasks[i].innerHTML = `<span>${letter}. ${taskContent[1].trim()}</span><span>${timeText}</span>`;
+        }
+    }
+
+    // Fonction pour générer le PDF
+    generatePDFButton.addEventListener('click', () => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.setFontSize(12);
+        doc.text("Liste des Tâches:", 10, 10);
+        
+        const tasks = taskList.getElementsByTagName('li');
+        for (let i = 0; i < tasks.length; i++) {
+            const letter = String.fromCharCode(65 + i); // Calculer la lettre
+            const taskContent = tasks[i].innerHTML.split('<span>');
+            const taskName = taskContent[1].trim().replace('</span>', '');
+            const taskTime = taskContent[2].trim().replace('</span>', '');
+            doc.text(`${letter}. ${taskName} - ${taskTime}`, 10, 20 + (i * 10));
+        }
+        
+        // Sauvegarder le PDF
+        doc.save('liste_de_taches.pdf');
+    });
+</script>
+
+</body>
+</html>
